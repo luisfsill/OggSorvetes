@@ -175,14 +175,50 @@ function mapaPreguicoso() {
 }
 
 function abasAtivas() {
-  const links = [...document.querySelectorAll('.abas a')];
-  const obs = new IntersectionObserver(entradas => {
-    for (const e of entradas) {
-      if (!e.isIntersecting) continue;
-      links.forEach(a => a.toggleAttribute('aria-current', a.hash === '#' + e.target.id));
-    }
-  }, { rootMargin: '-40% 0px -55% 0px' });
-  document.querySelectorAll('.categoria').forEach(s => obs.observe(s));
+  const abas = $('.abas');
+  const links = [...abas.querySelectorAll('a')];
+  const secoes = [...document.querySelectorAll('.categoria')];
+  const fundoDoMenu = () => parseFloat(getComputedStyle(abas).top) + abas.offsetHeight;
+  let travada = null;
+  let alvo = 0;
+  let soltar = 0;
+  const liberar = () => { travada = null; clearTimeout(soltar); conferir(); };
+
+  const marcar = id => links.forEach(a => a.toggleAttribute('aria-current', a.hash === '#' + id));
+
+  // Ativa a última categoria cujo título já chegou logo abaixo do menu fixo.
+  function conferir() {
+    if (travada) return;
+    const limite = fundoDoMenu() + 40;
+    let atual = secoes[0];
+    for (const s of secoes) if (s.querySelector('h3').getBoundingClientRect().top <= limite) atual = s;
+    marcar(atual.id);
+  }
+  addEventListener('scroll', () => {
+    if (travada && Math.abs(scrollY - alvo) < 3) liberar();
+    else conferir();
+  }, { passive: true });
+  // Se a pessoa rolar por conta própria no meio do caminho, a aba volta a seguir a rolagem.
+  for (const tipo of ['wheel', 'touchstart', 'keydown']) addEventListener(tipo, () => { if (travada) liberar(); }, { passive: true });
+  conferir();
+
+  // Só as abas deslizam suave; os links do topo pulam direto.
+  abas.addEventListener('click', e => {
+    const link = e.target.closest('a');
+    if (!link) return;
+    e.preventDefault();
+    const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const titulo = document.querySelector(link.hash + ' h3');
+    const topo = titulo.getBoundingClientRect().top + scrollY - fundoDoMenu() - 14;
+    // Durante a rolagem suave a aba clicada fica marcada; solta quando a rolagem para.
+    travada = link.hash;
+    alvo = Math.min(Math.max(0, topo), document.documentElement.scrollHeight - innerHeight);
+    marcar(link.hash.slice(1));
+    clearTimeout(soltar);
+    soltar = setTimeout(liberar, 4000);
+    scrollTo({ top: topo, behavior: suave ? 'smooth' : 'auto' });
+    history.replaceState(null, '', link.hash);
+  });
 }
 
 function zoomPicole() {
