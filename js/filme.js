@@ -6,6 +6,7 @@ const legendas = [...secao.querySelectorAll('.legenda')];
 const topo = document.querySelector('.topo');
 const total = Number(secao.dataset.quadros);
 const corTema = document.querySelector('meta[name="theme-color"]');
+let corVideo = '#3D1866';
 const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
 
 const quadros = new Array(total);
@@ -87,7 +88,7 @@ function desenhar(i) {
   const [esq, dir] = quadros[i].cores;
   secao.style.setProperty('--esq', esq);
   secao.style.setProperty('--dir', dir);
-  corTema.content = esq;
+  corVideo = esq;
   desenhado = i;
 }
 
@@ -99,7 +100,8 @@ function progresso() {
 
 function render() {
   pendente = 0;
-  topo.toggleAttribute('data-solido', secao.getBoundingClientRect().bottom <= topo.offsetHeight);
+  const solido = secao.getBoundingClientRect().bottom <= topo.offsetHeight;
+  topo.toggleAttribute('data-solido', solido);
   const p = progresso();
   secao.style.setProperty('--progresso', p.toFixed(4));
   secao.toggleAttribute('data-rolou', p > 0.02);
@@ -112,6 +114,9 @@ function render() {
   alvo = Math.round(p * (total - 1));
   const i = maisProximo(alvo);
   if (i >= 0 && i !== desenhado) desenhar(i);
+  // Barra de status do celular: cor do vídeo na abertura, magenta do cabeçalho depois dela.
+  const cor = solido ? '#9F3081' : corVideo;
+  if (corTema.content !== cor) corTema.content = cor;
 }
 
 function agendar() {
@@ -121,7 +126,11 @@ function agendar() {
 function iniciar() {
   if (reduzido.matches) {
     legendas[0].setAttribute('data-ativa', '');
-    addEventListener('scroll', () => topo.toggleAttribute('data-solido', scrollY > 40), { passive: true });
+    addEventListener('scroll', () => {
+      const solido = scrollY > 40;
+      topo.toggleAttribute('data-solido', solido);
+      corTema.content = solido ? '#9F3081' : corVideo;
+    }, { passive: true });
     return;
   }
   carregar(0).then(() => {

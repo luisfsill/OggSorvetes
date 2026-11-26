@@ -18,14 +18,14 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-padding-top: calc(var(--topo) + 8px); -webkit-text-size-adjust: 100%; }
+html { background: var(--noite); scroll-padding-top: calc(var(--topo) + 8px); -webkit-text-size-adjust: 100%; }
 body { margin: 0; font-family: var(--texto); color: var(--tinta); background: var(--creme); line-height: 1.5; }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 h1, h2 { font-family: var(--display); line-height: 1.02; margin: 0; letter-spacing: -0.01em; }
 em { font-style: normal; color: var(--laranja); }
 :focus-visible { outline: 3px solid var(--laranja); outline-offset: 3px; border-radius: 6px; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .pular { position: fixed; left: 12px; top: -60px; z-index: 100; background: #fff; padding: 10px 14px; border-radius: 10px; }
 .pular:focus { top: 12px; }
 
@@ -72,7 +72,7 @@ em { font-style: normal; color: var(--laranja); }
   padding-top: env(safe-area-inset-top); box-sizing: content-box;
   color: #fff; transition: background .3s, box-shadow .3s;
 }
-.topo[data-solido] { background: rgb(159 48 129 / .92); backdrop-filter: blur(10px); box-shadow: 0 6px 20px -12px rgb(0 0 0 / .5); }
+.topo[data-solido] { background: var(--magenta); box-shadow: 0 6px 20px -12px rgb(0 0 0 / .5); }
 .topo-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; margin-right: auto; }
 .topo-logo img { height: 34px; width: auto; }
 .topo-logo span { font: 600 .8rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; opacity: .9; padding-top: 6px; }
