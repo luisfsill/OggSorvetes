@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Oggi Sorvetes Piumhi · Sorvete a preço de fábrica</title>
+  <meta name="description" content="A Oggi chegou em Piumhi: sorvetes e picolés a preço de fábrica na Rua Miguel Couto, 91, Centro. Monte seu pedido e envie pelo WhatsApp.">
+  <meta name="theme-color" content="#9F3081">
+  <meta property="og:title" content="Oggi Sorvetes Piumhi">
+  <meta property="og:description" content="Sorvete de qualidade, preço de fábrica e muuuita variedade. Rua Miguel Couto, 91, Centro.">
+  <meta property="og:image" content="assets/poster.webp">
+  <link rel="preload" href="fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/quadros/f001.webp" as="image">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <a class="pular" href="#cardapio">Pular para o cardápio</a>
+
+  <header class="topo">
+    <a class="topo-logo" href="#inicio" aria-label="Oggi Sorvetes Piumhi, início">
+      <img src="assets/logo-oggi.svg" alt="" width="92" height="40">
+      <span>Piumhi</span>
+    </a>
+    <nav class="topo-nav" aria-label="Seções">
+      <a href="#cardapio">Cardápio</a>
+      <a href="#onde">Onde fica</a>
+    </nav>
+    <a class="botao botao-pequeno" href="#cardapio">Pedir</a>
+  </header>
+
+  <main>
+    <section class="filme" id="inicio" aria-labelledby="filme-titulo" data-quadros="288">
+      <div class="palco">
+        <div class="tela">
+          <img class="tela-poster" src="assets/poster.webp" alt="Picolé coberto de chocolate com uma mordida, cercado por pedaços de chocolate, sobre fundo magenta." width="640" height="1013">
+          <canvas class="tela-canvas" aria-hidden="true"></canvas>
+        </div>
+        <div class="legendas">
+          <p class="selo">Rua Miguel Couto, 91 · Centro</p>
+          <h1 id="filme-titulo" class="legenda" data-de="0" data-ate="0.22">A Oggi chegou em <em>Piumhi</em></h1>
+          <p class="legenda" data-de="0.25" data-ate="0.47">Preço de <em>fábrica</em>, todo dia.</p>
+          <p class="legenda" data-de="0.5" data-ate="0.72">Muuuita <em>variedade</em>: mais de 90 sabores.</p>
+          <div class="legenda" data-de="0.78" data-ate="1.01">
+            <p>Bateu vontade? <em>Peça agora.</em></p>
+            <a class="botao" href="#cardapio">Ver o cardápio</a>
+          </div>
+        </div>
+        <p class="rolar" aria-hidden="true"><span></span>Role para provar</p>
+        <div class="progresso" aria-hidden="true"><span></span></div>
+      </div>
+    </section>
+
+    <section class="faixa" aria-label="Por que a Oggi">
+      <ul>
+        <li><strong>+90</strong> sabores</li>
+        <li><strong>Preço</strong> de fábrica</li>
+        <li>A <strong>maior rede</strong> de sorvetes do Brasil</li>
+      </ul>
+    </section>
+
+    <section class="cardapio" id="cardapio" aria-labelledby="cardapio-titulo">
+      <div class="cardapio-topo">
+        <div>
+          <p class="sobretitulo">Monte seu pedido</p>
+          <h2 id="cardapio-titulo">Escolha, junte na sacola e mande no WhatsApp.</h2>
+          <p class="aviso" id="cardapio-aviso">Cardápio ilustrativo.</p>
+        </div>
+        <img class="cardapio-picole" src="assets/picole.webp" alt="Picolé coberto de chocolate com uma mordida, sobre fundo magenta." width="900" height="1600" loading="lazy">
+      </div>
+      <nav class="abas" aria-label="Categorias do cardápio"></nav>
+      <div class="categorias" aria-live="off">
+        <noscript>
+          <p>Para ver o cardápio, ative o JavaScript ou <a href="https://wa.me/5537900000000">peça direto pelo WhatsApp</a>.</p>
+        </noscript>
+      </div>
+    </section>
+
+    <section class="onde" id="onde" aria-labelledby="onde-titulo">
+      <div class="onde-texto">
+        <p class="sobretitulo">Onde fica</p>
+        <h2 id="onde-titulo">Bem no Centro de Piumhi.</h2>
+        <address data-loja="endereco">Rua Miguel Couto, 91 – Centro, Piumhi – MG</address>
+        <p class="onde-info"><strong>Inauguração:</strong> <span data-loja="inauguracao">em breve</span></p>
+        <p class="onde-info"><strong>Horário:</strong> <span data-loja="horario">em breve</span></p>
+        <div class="onde-botoes">
+          <a class="botao" data-rota="google" href="https://www.google.com/maps/dir/?api=1&amp;destination=Rua+Miguel+Couto%2C+91%2C+Centro%2C+Piumhi+-+MG" target="_blank" rel="noopener">Como chegar</a>
+          <a class="botao botao-contorno" data-rota="waze" href="https://waze.com/ul?q=Rua+Miguel+Couto%2C+91%2C+Piumhi&amp;navigate=yes" target="_blank" rel="noopener">Abrir no Waze</a>
+        </div>
+      </div>
+      <div class="mapa" data-mapa="https://www.google.com/maps?q=Rua+Miguel+Couto,+91,+Centro,+Piumhi+-+MG&amp;output=embed">
+        <p>Carregando o mapa…</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <img src="assets/logo-oggi.svg" alt="Oggi Sorvetes" width="110" height="48">
+    <p>Oggi Sorvetes Piumhi · <span data-loja="endereco">Rua Miguel Couto, 91 – Centro, Piumhi – MG</span></p>
+    <p class="rodape-links">
+      <a data-loja-link="instagram" href="https://www.instagram.com/oggisorvetespiumhi/" target="_blank" rel="noopener">Instagram</a>
+      <a data-whats href="https://wa.me/5537900000000" target="_blank" rel="noopener">WhatsApp</a>
+    </p>
+    <p class="rodape-nota">Página da loja franqueada de Piumhi.</p>
+  </footer>
+
+  <button class="sacola-botao" type="button" aria-haspopup="dialog" hidden>
+    <span class="sacola-icone" aria-hidden="true"></span>
+    <span class="sacola-resumo">Sacola</span>
+  </button>
+  <p class="sr-only" aria-live="polite" id="sacola-anuncio"></p>
+
+  <dialog class="sacola" aria-labelledby="sacola-titulo">
+    <form method="dialog" class="sacola-form" novalidate>
+      <div class="sacola-cabeca">
+        <h2 id="sacola-titulo">Sua sacola</h2>
+        <button class="fechar" value="fechar" aria-label="Fechar sacola" formnovalidate>×</button>
+      </div>
+      <ul class="sacola-itens"></ul>
+      <p class="sacola-total">Total <strong>R$ 0,00</strong></p>
+      <label class="campo">Seu nome
+        <input name="nome" autocomplete="name" required>
+        <span class="erro" data-erro="nome"></span>
+      </label>
+      <fieldset class="modo">
+        <legend>Como você quer receber?</legend>
+        <label><input type="radio" name="modo" value="retirada" checked> Retiro na loja</label>
+        <label data-entrega><input type="radio" name="modo" value="entrega"> Entrega</label>
+      </fieldset>
+      <label class="campo campo-endereco" hidden>Endereço de entrega
+        <input name="endereco" autocomplete="street-address">
+        <span class="erro" data-erro="endereco"></span>
+      </label>
+      <p class="erro" data-erro="sacola"></p>
+      <button class="botao botao-whats" value="enviar">Enviar pedido no WhatsApp</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/filme.js"></script>
+  <script type="module" src="js/cardapio.js"></script>
+</body>
+</html>

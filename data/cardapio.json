@@ -1,0 +1,62 @@
+{
+  "aviso": "Cardápio ilustrativo: sabores e preços de exemplo, até a loja enviar o cardápio oficial.",
+  "categorias": [
+    {
+      "id": "fruta",
+      "nome": "Picolés de fruta",
+      "itens": [
+        { "id": "fruta-morango", "nome": "Picolé de Morango", "descricao": "Pedaços de fruta de verdade.", "preco": 300, "cor": "#E62866" },
+        { "id": "fruta-limao", "nome": "Picolé de Limão", "descricao": "Azedinho e refrescante.", "preco": 300, "cor": "#9BD14B" },
+        { "id": "fruta-manga", "nome": "Picolé de Manga", "descricao": "Manga madura, bem cremosa.", "preco": 300, "cor": "#F29200" },
+        { "id": "fruta-uva", "nome": "Picolé de Uva", "descricao": "O roxinho da casa.", "preco": 300, "cor": "#9F3081" },
+        { "id": "fruta-abacaxi", "nome": "Picolé de Abacaxi", "descricao": "Docinho na medida.", "preco": 300, "cor": "#F5C842" }
+      ]
+    },
+    {
+      "id": "cremoso",
+      "nome": "Picolés cremosos",
+      "itens": [
+        { "id": "cremoso-torta-limao", "nome": "Torta de Limão", "descricao": "Creme de limão com farofa de biscoito.", "preco": 350, "cor": "#D9E86A" },
+        { "id": "cremoso-coco", "nome": "Coco Cremoso", "descricao": "Coco ralado e leite condensado.", "preco": 350, "cor": "#F3EEE4" },
+        { "id": "cremoso-chocolate", "nome": "Chocolate", "descricao": "Chocolate intenso, sem cobertura.", "preco": 350, "cor": "#6B3A24" },
+        { "id": "cremoso-leitinho", "nome": "Leitinho Trufado", "descricao": "Base de leite com recheio trufado.", "preco": 380, "cor": "#F1D9B5" }
+      ]
+    },
+    {
+      "id": "coberto",
+      "nome": "Cobertos de chocolate",
+      "itens": [
+        { "id": "coberto-ao-leite", "nome": "Coberto ao Leite", "descricao": "Baunilha com casquinha de chocolate ao leite.", "preco": 550, "cor": "#5A2E1A" },
+        { "id": "coberto-pistache", "nome": "Coberto Pistache", "descricao": "Creme de pistache e chocolate branco.", "preco": 650, "cor": "#8DB86B" },
+        { "id": "coberto-morango", "nome": "Morango Coberto", "descricao": "Morango com chocolate meio amargo.", "preco": 550, "cor": "#4A2316" },
+        { "id": "coberto-doce-leite", "nome": "Doce de Leite Coberto", "descricao": "Doce de leite mineiro e chocolate.", "preco": 550, "cor": "#7A4428" }
+      ]
+    },
+    {
+      "id": "especial",
+      "nome": "Especiais",
+      "itens": [
+        { "id": "especial-cone", "nome": "Cone Crocante", "descricao": "Casquinha com sorvete e calda de chocolate.", "preco": 850, "cor": "#C98A3D", "forma": "cone" },
+        { "id": "especial-sundae", "nome": "Sundae no Copo", "descricao": "Sorvete com calda de morango ou chocolate.", "preco": 900, "cor": "#E87BA8", "forma": "copo" },
+        { "id": "especial-bombom", "nome": "Caixa de Bombons Gelados", "descricao": "Bombons de sorvete para dividir.", "preco": 1490, "cor": "#2CC3D5", "forma": "caixa" }
+      ]
+    },
+    {
+      "id": "pote",
+      "nome": "Potes para levar",
+      "itens": [
+        { "id": "pote-napolitano", "nome": "Pote 2 L Napolitano", "descricao": "Chocolate, creme e morango.", "preco": 2490, "cor": "#E87BA8", "forma": "pote" },
+        { "id": "pote-flocos", "nome": "Pote 2 L Flocos", "descricao": "Creme com raspas de chocolate.", "preco": 2490, "cor": "#F3EEE4", "forma": "pote" },
+        { "id": "pote-acai", "nome": "Pote 1,5 L Açaí", "descricao": "Açaí cremoso para montar em casa.", "preco": 2990, "cor": "#4B1D52", "forma": "pote" }
+      ]
+    },
+    {
+      "id": "kids",
+      "nome": "Kids",
+      "itens": [
+        { "id": "kids-morango", "nome": "Picolé Kids Morango", "descricao": "Tamanho perfeito para os pequenos.", "preco": 400, "cor": "#FF8FB8" },
+        { "id": "kids-chocolate", "nome": "Picolé Kids Chocolate", "descricao": "Chocolate suave e cremoso.", "preco": 400, "cor": "#8A5235" }
+      ]
+    }
+  ]
+}
