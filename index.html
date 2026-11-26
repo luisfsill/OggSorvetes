@@ -120,6 +120,7 @@
         <button class="fechar" value="fechar" aria-label="Fechar sacola" formnovalidate>×</button>
       </div>
       <ul class="sacola-itens"></ul>
+      <button type="button" class="sacola-esvaziar" hidden>Esvaziar sacola</button>
       <p class="sacola-total">Total <strong>R$ 0,00</strong></p>
       <label class="campo">Seu nome
         <input name="nome" autocomplete="name" required>
@@ -127,7 +128,7 @@
       </label>
       <fieldset class="modo">
         <legend>Como você quer receber?</legend>
-        <label><input type="radio" name="modo" value="retirada" checked> Retiro na loja</label>
+        <label><input type="radio" name="modo" value="retirada" checked> Retirar na loja</label>
         <label data-entrega><input type="radio" name="modo" value="entrega"> Entrega</label>
       </fieldset>
       <label class="campo campo-endereco" hidden>Endereço de entrega

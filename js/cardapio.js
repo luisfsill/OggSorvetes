@@ -25,7 +25,7 @@ function lerSacola() {
 
 function renderizarCardapio(cardapio) {
   $('#cardapio-aviso').textContent = cardapio.aviso;
-  $('.abas').innerHTML = cardapio.categorias.map(c => `<a href="#cat-${c.id}">${c.nome}</a>`).join('');
+  $('.abas').innerHTML = cardapio.categorias.map(c => `<a href="#cat-${c.id}">${c.aba || c.nome}</a>`).join('');
   $('.categorias').innerHTML = `<svg width="0" height="0" aria-hidden="true"><linearGradient id="brilho" x1="0" x2="1"><stop offset=".15" stop-color="#fff" stop-opacity=".35"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/></linearGradient></svg>` +
     cardapio.categorias.map(c => `
       <section class="categoria" id="cat-${c.id}" aria-labelledby="t-${c.id}">
@@ -75,10 +75,30 @@ function atualizar(anuncio) {
 
 function renderizarSacola() {
   const lista = itens.filter(i => sacola[i.id]);
+  const foco = document.activeElement?.closest?.('.sacola-itens [data-acao]');
+  const voltar = foco && `[data-id="${foco.closest('li').dataset.id}"] [data-acao="${foco.dataset.acao}"]`;
   $('.sacola-itens').innerHTML = lista.length
-    ? lista.map(i => `<li><span><strong>${sacola[i.id]}x</strong> ${i.nome}</span><span>${formatarPreco(sacola[i.id] * i.preco)}</span></li>`).join('')
-    : '<li class="sacola-vazia">Sua sacola está vazia.</li>';
+    ? lista.map(i => `
+      <li data-id="${i.id}">
+        <span class="sacola-nome">${i.nome}<small>${formatarPreco(i.preco)} cada</small></span>
+        <span class="sacola-preco">${formatarPreco(sacola[i.id] * i.preco)}</span>
+        <span class="qtd">
+          <button type="button" data-acao="menos" aria-label="Tirar um ${i.nome}">−</button>
+          <output aria-label="Quantidade de ${i.nome}">${sacola[i.id]}</output>
+          <button type="button" data-acao="mais" aria-label="Adicionar um ${i.nome}">+</button>
+        </span>
+        <button type="button" class="sacola-remover" data-acao="remover" aria-label="Remover ${i.nome} da sacola">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 .8 12a2 2 0 0 0 2 1.9h4.4a2 2 0 0 0 2-1.9L17 7M10 11v6M14 11v6"/></svg>
+        </button>
+      </li>`).join('')
+    : '<li class="sacola-vazia">Sua sacola está vazia. Escolha seus sabores no cardápio.</li>';
   $('.sacola-total strong').textContent = formatarPreco(totalSacola(sacola, itens));
+  const esvaziar = $('.sacola-esvaziar');
+  esvaziar.hidden = lista.length === 0;
+  esvaziar.removeAttribute('data-confirmar');
+  esvaziar.textContent = 'Esvaziar sacola';
+  if (voltar) ($(voltar) || $('.fechar')).focus();
+  else if (foco) $('.fechar').focus();
 }
 
 function mudar(id, delta) {
@@ -97,6 +117,27 @@ function ligarSacola() {
     if (botao) mudar(botao.closest('.item').dataset.id, botao.dataset.acao === 'mais' ? 1 : -1);
   });
   $('.sacola-botao').addEventListener('click', () => dialogo.showModal());
+  $('.sacola-itens').addEventListener('click', e => {
+    const botao = e.target.closest('button[data-acao]');
+    if (!botao) return;
+    const id = botao.closest('li').dataset.id;
+    if (botao.dataset.acao === 'remover') {
+      sacola[id] = 0;
+      atualizar(`${itens.find(i => i.id === id).nome} removido da sacola.`);
+    } else mudar(id, botao.dataset.acao === 'mais' ? 1 : -1);
+  });
+  // Esvaziar pede um segundo toque para confirmar, sem janela de confirmação do navegador.
+  $('.sacola-esvaziar').addEventListener('click', e => {
+    const botao = e.currentTarget;
+    if (!botao.hasAttribute('data-confirmar')) {
+      botao.setAttribute('data-confirmar', '');
+      botao.textContent = 'Toque de novo para esvaziar';
+      return;
+    }
+    sacola = {};
+    atualizar('Sacola esvaziada.');
+    $('.fechar').focus();
+  });
   dialogo.addEventListener('click', e => { if (e.target === dialogo) dialogo.close(); });
 
   if (!loja.entrega) $('[data-entrega]').remove();
