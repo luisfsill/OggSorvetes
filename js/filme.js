@@ -5,6 +5,7 @@ const ctx = canvas.getContext('2d');
 const legendas = [...secao.querySelectorAll('.legenda')];
 const topo = document.querySelector('.topo');
 const total = Number(secao.dataset.quadros);
+const corTema = document.querySelector('meta[name="theme-color"]');
 const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
 
 const quadros = new Array(total);
@@ -20,9 +21,26 @@ function carregar(i) {
   img.decoding = 'async';
   img.src = caminho(i);
   quadros[i] = { img, ok: false };
-  quadros[i].pronto = img.decode().then(() => { quadros[i].ok = true; if (Math.abs(i - alvo) < Math.abs(desenhado - alvo)) agendar(); }).catch(() => {});
+  quadros[i].pronto = img.decode().then(() => { quadros[i].cores = coresDaBorda(img); quadros[i].ok = true; if (Math.abs(i - alvo) < Math.abs(desenhado - alvo)) agendar(); }).catch(() => {});
   return quadros[i].pronto;
 }
+
+// Cor das faixas esquerda e direita do quadro: o fundo da página acompanha o vídeo.
+const amostra = document.createElement('canvas');
+amostra.width = 2;
+amostra.height = 8;
+const ctxAmostra = amostra.getContext('2d', { willReadFrequently: true });
+
+function corDaFaixa(img, x0) {
+  const w = img.naturalWidth * 0.04;
+  ctxAmostra.drawImage(img, x0 * (img.naturalWidth - w), img.naturalHeight * 0.2, w, img.naturalHeight * 0.6, 0, 0, 2, 8);
+  const px = ctxAmostra.getImageData(0, 0, 2, 8).data;
+  const soma = [0, 0, 0];
+  for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) soma[c] += px[i + c];
+  return `rgb(${soma.map(v => Math.round(v / 16)).join(' ')})`;
+}
+
+const coresDaBorda = img => [corDaFaixa(img, 0), corDaFaixa(img, 1)];
 
 // Ordem de carga em passos cada vez menores: rolagem rápida já encontra um quadro próximo.
 function ordemDeCarga() {
@@ -66,6 +84,10 @@ function desenhar(i) {
   const w = img.naturalWidth * escala;
   const h = img.naturalHeight * escala;
   ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  const [esq, dir] = quadros[i].cores;
+  secao.style.setProperty('--esq', esq);
+  secao.style.setProperty('--dir', dir);
+  corTema.content = esq;
   desenhado = i;
 }
 
@@ -81,7 +103,11 @@ function render() {
   const p = progresso();
   secao.style.setProperty('--progresso', p.toFixed(4));
   secao.toggleAttribute('data-rolou', p > 0.02);
-  for (const el of legendas) el.toggleAttribute('data-ativa', p >= Number(el.dataset.de) && p < Number(el.dataset.ate));
+  for (const el of legendas) {
+    const t = (p - el.dataset.de) / (el.dataset.ate - el.dataset.de);
+    el.style.setProperty('--t', Math.min(1, Math.max(0, t)).toFixed(4));
+    el.toggleAttribute('data-ativa', t > 0.1 && t < 0.9);
+  }
 
   alvo = Math.round(p * (total - 1));
   const i = maisProximo(alvo);
