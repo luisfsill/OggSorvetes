@@ -17,7 +17,6 @@ const passo = computador.matches ? 1 : 2;
 
 const quadros = new Array(total);
 let corVideo = '#3D1866';
-let alvoQuadro = 0;
 let desenhado = -1;
 
 // Geometria medida só no carregamento e no redimensionamento (nada de medir a cada quadro).
@@ -41,12 +40,28 @@ function carregar(i) {
   img.decoding = 'async';
   img.src = caminho(i);
   quadros[i] = { img, ok: false };
-  quadros[i].pronto = img.decode().then(() => {
+  quadros[i].pronto = img.decode().then(async () => {
     quadros[i].cores = coresDaBorda(img);
+    // Quadro já decodificado e no tamanho da tela: desenhar fica instantâneo, sem decodificar no meio da rolagem.
+    quadros[i].img = await paraBitmap(img);
     quadros[i].ok = true;
-    if (Math.abs(i - alvoQuadro) < Math.abs(desenhado - alvoQuadro)) acordar();
+    acordar();
   }).catch(() => {});
   return quadros[i].pronto;
+}
+
+async function paraBitmap(img) {
+  if (!('createImageBitmap' in window) || !canvas.width) return img;
+  const escala = Math.min(1, Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight));
+  try {
+    return await createImageBitmap(img, {
+      resizeWidth: Math.round(img.naturalWidth * escala),
+      resizeHeight: Math.round(img.naturalHeight * escala),
+      resizeQuality: 'medium'
+    });
+  } catch {
+    return img;
+  }
 }
 
 // Cor das faixas esquerda e direita do quadro: o fundo da página acompanha o vídeo.
@@ -84,14 +99,6 @@ async function carregarTodos() {
   }));
 }
 
-function maisProximo(i) {
-  for (let d = 0; d < total; d++) {
-    if (quadros[i - d]?.ok) return i - d;
-    if (quadros[i + d]?.ok) return i + d;
-  }
-  return -1;
-}
-
 // Esmaecimento das bordas feito dentro do canvas (mais leve que máscara CSS a cada quadro).
 let bordas = [];
 
@@ -100,7 +107,7 @@ function medir() {
   curso = Math.max(1, secao.offsetHeight - innerHeight);
   fimDoFilme = inicio + secao.offsetHeight - topo.offsetHeight;
 
-  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const dpr = Math.min(devicePixelRatio || 1, computador.matches ? 2 : 1.5);
   const { width, height } = canvas.getBoundingClientRect();
   const W0 = Math.round(width * dpr);
   const H0 = Math.round(height * dpr);
@@ -130,26 +137,45 @@ function medir() {
   aplicar(true);
 }
 
-function desenhar(i) {
-  const { img, cores } = quadros[i];
-  const escala = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-  const w = img.naturalWidth * escala;
-  const h = img.naturalHeight * escala;
+function cobrir(img, alpha) {
+  const iw = img.naturalWidth || img.width;
+  const ih = img.naturalHeight || img.height;
+  const escala = Math.max(canvas.width / iw, canvas.height / ih);
+  const w = iw * escala;
+  const h = ih * escala;
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+}
+
+// Desenha o quadro a e funde o quadro b por cima na proporção mistura: movimento contínuo entre quadros.
+function desenhar(a, b, mistura) {
   ctx.globalCompositeOperation = 'source-over';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+  cobrir(quadros[a].img, 1);
+  if (b !== a && mistura > 0.01) cobrir(quadros[b].img, mistura);
+  ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'destination-out';
   for (const [g, x, y, bw, bh] of bordas) { ctx.fillStyle = g; ctx.fillRect(x, y, bw, bh); }
   ctx.globalCompositeOperation = 'source-over';
 
-  const [esq, dir] = cores;
+  const [esq, dir] = quadros[mistura > 0.5 ? b : a].cores;
   if (esq !== corVideo || palco.dataset.dir !== dir) {
     palco.style.background = `linear-gradient(to right, ${esq} 30%, ${dir} 70%)`;
     secao.style.backgroundColor = esq;
     palco.dataset.dir = dir;
   }
   corVideo = esq;
-  desenhado = i;
+}
+
+function vizinhos(exato) {
+  const base = Math.floor(exato);
+  let a = -1;
+  let b = -1;
+  for (let i = base; i >= 0; i--) if (quadros[i]?.ok) { a = i; break; }
+  for (let i = base + 1; i < total; i++) if (quadros[i]?.ok) { b = i; break; }
+  if (a < 0) a = b;
+  if (b < 0) b = a;
+  return [a, b];
 }
 
 function lerRolagem() {
@@ -159,9 +185,13 @@ function lerRolagem() {
 // Aplica o progresso suavizado: quadro, textos, nome gigante e barra.
 function aplicar(forcar) {
   const p = pAtual;
-  alvoQuadro = Math.round(p * (total - 1));
-  const i = maisProximo(alvoQuadro);
-  if (i >= 0 && (i !== desenhado || forcar)) desenhar(i);
+  const exato = p * (total - 1);
+  const [a, b] = vizinhos(exato);
+  if (a >= 0) {
+    const mistura = b > a ? Math.min(1, Math.max(0, (exato - a) / (b - a))) : 0;
+    const chave = a + mistura.toFixed(3) + b;
+    if (chave !== desenhado || forcar) { desenhar(a, b, mistura); desenhado = chave; }
+  }
 
   const v = p.toFixed(4);
   nome.style.setProperty('--progresso', v);
@@ -220,14 +250,14 @@ function iniciar() {
     }, { passive: true });
     return;
   }
+  medir();
   carregar(0).then(() => {
     secao.setAttribute('data-pronto', '');
-    medir();
+    acordar();
   });
   carregarTodos();
   addEventListener('scroll', () => { lerRolagem(); acordar(); }, { passive: true });
   addEventListener('resize', medir);
-  medir();
   pAtual = pAlvo;
   aplicar(true);
   atualizarTopo(performance.now());
