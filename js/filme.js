@@ -256,7 +256,12 @@ function iniciar() {
     acordar();
   });
   carregarTodos();
-  addEventListener('scroll', () => { lerRolagem(); acordar(); }, { passive: true });
+  addEventListener('scroll', () => {
+    lerRolagem();
+    // Salto (clique na logo ou num link): o vídeo vai junto de uma vez, sem rebobinar na frente da pessoa.
+    if (Math.abs(pAlvo - pAtual) > 0.3) { pAtual = pAlvo; aplicar(true); }
+    acordar();
+  }, { passive: true });
   addEventListener('resize', medir);
   pAtual = pAlvo;
   aplicar(true);
