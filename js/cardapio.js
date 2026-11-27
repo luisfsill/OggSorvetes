@@ -153,6 +153,11 @@ function ligarSacola() {
     form.endereco.setAttribute('aria-invalid', String(Boolean(erros.endereco)));
     if (!ok) { (erros.nome ? form.nome : erros.endereco ? form.endereco : form.nome).focus(); return; }
     window.open(linkWhatsApp(loja.whatsapp, montarMensagem(pedido)), '_blank', 'noopener');
+    // Pedido enviado: esvazia a sacola, limpa o endereço e volta para o site.
+    sacola = {};
+    form.endereco.value = '';
+    atualizar('Pedido enviado pelo WhatsApp. Sacola esvaziada.');
+    dialogo.close();
   });
 }
 
