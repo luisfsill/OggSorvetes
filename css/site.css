@@ -95,9 +95,11 @@ em { font-style: normal; color: var(--laranja); }
   font: 700 46vw/1 var(--display); letter-spacing: -0.02em; text-transform: uppercase;
   color: transparent; -webkit-text-stroke: 1.5px rgb(255 255 255 / .3);
   transform: translate(calc(6vw - var(--progresso, 0) * 420vw), -50%);
+  will-change: transform;
 }
 .tela { z-index: 1; inset: auto; left: 50%; top: 42%; width: 74vw; height: calc(74vw * 1013 / 640); max-height: 62svh; aspect-ratio: 640 / 1013; transform: translate(-50%, -50%); }
-.tela-canvas, .tela-poster {
+/* O canvas esmaece as próprias bordas (js/filme.js); a máscara fica só no pôster estático. */
+.tela-poster {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 16%, #000 84%, transparent), linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
   -webkit-mask-composite: source-in;
   mask-image: linear-gradient(to right, transparent, #000 16%, #000 84%, transparent), linear-gradient(to bottom, transparent, #000 10%, #000 88%, transparent);
@@ -114,6 +116,7 @@ em { font-style: normal; color: var(--laranja); }
   opacity: min(1, calc(var(--t) * 6), calc((1 - var(--t)) * 6));
   transform: translateY(calc((0.5 - var(--t)) * 90px));
   pointer-events: none;
+  will-change: transform, opacity;
 }
 .legenda[data-ativa] { pointer-events: auto; }
 .legenda p { margin: 0 0 22px; }
@@ -131,7 +134,7 @@ em { font-style: normal; color: var(--laranja); }
   .palco { grid-template-columns: 1fr minmax(0, calc(100svh * 640 / 1013)) 1fr; }
   .tela { position: relative; grid-area: 1 / 2; inset: auto; left: auto; top: auto; width: auto; height: 100svh; max-height: none; aspect-ratio: auto; transform: none; z-index: 1; }
   /* As bordas do vídeo somem no fundo, que tem a cor das bordas do quadro atual. */
-  .tela-canvas, .tela-poster { -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent); }
+  .tela-poster { -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent); }
   .tela::after { display: none; }
 
   .nome-gigante {

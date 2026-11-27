@@ -1,18 +1,37 @@
 // Filme guiado pela rolagem: desenha no canvas o quadro que corresponde ao progresso da seção.
+// O progresso é suavizado (persegue a rolagem em vez de saltar), o que deixa o efeito liso no celular.
 const secao = document.querySelector('.filme');
+const palco = secao.querySelector('.palco');
 const canvas = secao.querySelector('.tela-canvas');
 const ctx = canvas.getContext('2d');
 const legendas = [...secao.querySelectorAll('.legenda')];
+const nome = secao.querySelector('.nome-gigante');
+const barra = secao.querySelector('.progresso span');
 const topo = document.querySelector('.topo');
 const total = Number(secao.dataset.quadros);
 const corTema = document.querySelector('meta[name="theme-color"]');
-let corVideo = '#3D1866';
 const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
+const computador = matchMedia('(min-width: 900px) and (min-aspect-ratio: 1/1)');
+// No celular carrega um quadro sim, um não: metade da memória e do download; a suavização cobre a diferença.
+const passo = computador.matches ? 1 : 2;
 
 const quadros = new Array(total);
-let alvo = 0;
+let corVideo = '#3D1866';
+let alvoQuadro = 0;
 let desenhado = -1;
-let pendente = 0;
+
+// Geometria medida só no carregamento e no redimensionamento (nada de medir a cada quadro).
+let inicio = 0;
+let curso = 1;
+let fimDoFilme = 0;
+
+let pAlvo = 0;
+let pAtual = 0;
+let rodando = false;
+let ultimoTempo = 0;
+let solidoAntes = null;
+let rolouAntes = null;
+let temaEm = 0;
 
 const caminho = i => `assets/quadros/f${String(i + 1).padStart(3, '0')}.webp`;
 
@@ -22,7 +41,11 @@ function carregar(i) {
   img.decoding = 'async';
   img.src = caminho(i);
   quadros[i] = { img, ok: false };
-  quadros[i].pronto = img.decode().then(() => { quadros[i].cores = coresDaBorda(img); quadros[i].ok = true; if (Math.abs(i - alvo) < Math.abs(desenhado - alvo)) agendar(); }).catch(() => {});
+  quadros[i].pronto = img.decode().then(() => {
+    quadros[i].cores = coresDaBorda(img);
+    quadros[i].ok = true;
+    if (Math.abs(i - alvoQuadro) < Math.abs(desenhado - alvoQuadro)) acordar();
+  }).catch(() => {});
   return quadros[i].pronto;
 }
 
@@ -47,17 +70,16 @@ const coresDaBorda = img => [corDaFaixa(img, 0), corDaFaixa(img, 1)];
 function ordemDeCarga() {
   const ordem = [];
   const visto = new Set();
-  for (let passo = 16; passo >= 1; passo /= 2) {
-    for (let i = 0; i < total; i += passo) if (!visto.has(i)) { visto.add(i); ordem.push(i); }
+  for (let p = 16 * passo; p >= passo; p /= 2) {
+    for (let i = 0; i < total; i += p) if (!visto.has(i)) { visto.add(i); ordem.push(i); }
   }
   return ordem;
 }
 
 async function carregarTodos() {
   const ordem = ordemDeCarga();
-  const paralelo = 6;
   let pos = 0;
-  await Promise.all(Array.from({ length: paralelo }, async () => {
+  await Promise.all(Array.from({ length: 6 }, async () => {
     while (pos < ordem.length) await carregar(ordem[pos++]);
   }));
 }
@@ -70,57 +92,122 @@ function maisProximo(i) {
   return -1;
 }
 
-function ajustarCanvas() {
+// Esmaecimento das bordas feito dentro do canvas (mais leve que máscara CSS a cada quadro).
+let bordas = [];
+
+function medir() {
+  inicio = secao.getBoundingClientRect().top + scrollY;
+  curso = Math.max(1, secao.offsetHeight - innerHeight);
+  fimDoFilme = inicio + secao.offsetHeight - topo.offsetHeight;
+
   const dpr = Math.min(devicePixelRatio || 1, 2);
   const { width, height } = canvas.getBoundingClientRect();
-  canvas.width = Math.round(width * dpr);
-  canvas.height = Math.round(height * dpr);
+  const W0 = Math.round(width * dpr);
+  const H0 = Math.round(height * dpr);
+  // No celular a barra de endereço some e volta durante a rolagem: se o canvas não mudou, não redesenha.
+  if (W0 === canvas.width && H0 === canvas.height && bordas.length) { lerRolagem(); acordar(); return; }
+  canvas.width = W0;
+  canvas.height = H0;
+  const W = canvas.width;
+  const H = canvas.height;
+  const faixa = (x0, y0, x1, y1) => {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    return g;
+  };
+  const lado = W * (computador.matches ? 0.14 : 0.16);
+  bordas = [
+    [faixa(0, 0, lado, 0), 0, 0, lado, H],
+    [faixa(W, 0, W - lado, 0), W - lado, 0, lado, H]
+  ];
+  if (!computador.matches) {
+    bordas.push([faixa(0, 0, 0, H * 0.1), 0, 0, W, H * 0.1]);
+    bordas.push([faixa(0, H, 0, H * 0.88), 0, H * 0.88, W, H * 0.12]);
+  }
   desenhado = -1;
-  agendar();
+  lerRolagem();
+  aplicar(true);
 }
 
 function desenhar(i) {
-  const { img } = quadros[i];
+  const { img, cores } = quadros[i];
   const escala = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
   const w = img.naturalWidth * escala;
   const h = img.naturalHeight * escala;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-  const [esq, dir] = quadros[i].cores;
-  secao.style.setProperty('--esq', esq);
-  secao.style.setProperty('--dir', dir);
+  ctx.globalCompositeOperation = 'destination-out';
+  for (const [g, x, y, bw, bh] of bordas) { ctx.fillStyle = g; ctx.fillRect(x, y, bw, bh); }
+  ctx.globalCompositeOperation = 'source-over';
+
+  const [esq, dir] = cores;
+  if (esq !== corVideo || palco.dataset.dir !== dir) {
+    palco.style.background = `linear-gradient(to right, ${esq} 30%, ${dir} 70%)`;
+    secao.style.backgroundColor = esq;
+    palco.dataset.dir = dir;
+  }
   corVideo = esq;
   desenhado = i;
 }
 
-function progresso() {
-  const caixa = secao.getBoundingClientRect();
-  const curso = secao.offsetHeight - innerHeight;
-  return Math.min(1, Math.max(0, -caixa.top / curso));
+function lerRolagem() {
+  pAlvo = Math.min(1, Math.max(0, (scrollY - inicio) / curso));
 }
 
-function render() {
-  pendente = 0;
-  const solido = secao.getBoundingClientRect().bottom <= topo.offsetHeight;
-  topo.toggleAttribute('data-solido', solido);
-  const p = progresso();
-  secao.style.setProperty('--progresso', p.toFixed(4));
-  secao.toggleAttribute('data-rolou', p > 0.02);
+// Aplica o progresso suavizado: quadro, textos, nome gigante e barra.
+function aplicar(forcar) {
+  const p = pAtual;
+  alvoQuadro = Math.round(p * (total - 1));
+  const i = maisProximo(alvoQuadro);
+  if (i >= 0 && (i !== desenhado || forcar)) desenhar(i);
+
+  const v = p.toFixed(4);
+  nome.style.setProperty('--progresso', v);
+  barra.style.setProperty('--progresso', v);
   for (const el of legendas) {
-    const t = (p - el.dataset.de) / (el.dataset.ate - el.dataset.de);
-    el.style.setProperty('--t', Math.min(1, Math.max(0, t)).toFixed(4));
-    el.toggleAttribute('data-ativa', t > 0.1 && t < 0.9);
+    const t = Math.min(1, Math.max(0, (p - el.dataset.de) / (el.dataset.ate - el.dataset.de)));
+    el.style.setProperty('--t', t.toFixed(4));
+    const ativa = t > 0.1 && t < 0.9;
+    if (ativa !== el.hasAttribute('data-ativa')) el.toggleAttribute('data-ativa', ativa);
   }
-
-  alvo = Math.round(p * (total - 1));
-  const i = maisProximo(alvo);
-  if (i >= 0 && i !== desenhado) desenhar(i);
-  // Barra de status do celular: cor do vídeo na abertura, magenta do cabeçalho depois dela.
-  const cor = solido ? '#9F3081' : corVideo;
-  if (corTema.content !== cor) corTema.content = cor;
+  const rolou = p > 0.02;
+  if (rolou !== rolouAntes) { secao.toggleAttribute('data-rolou', rolou); rolouAntes = rolou; }
 }
 
-function agendar() {
-  if (!pendente) pendente = requestAnimationFrame(render);
+// Cabeçalho e barra de status: dependem da rolagem real, não da suavizada.
+function atualizarTopo(agora) {
+  const solido = scrollY >= fimDoFilme;
+  if (solido !== solidoAntes) {
+    topo.toggleAttribute('data-solido', solido);
+    solidoAntes = solido;
+    temaEm = 0;
+  }
+  // Trocar a cor da barra do navegador tem custo: no máximo a cada 250 ms.
+  if (agora - temaEm > 250) {
+    const cor = solido ? '#9F3081' : corVideo;
+    if (corTema.content !== cor) corTema.content = cor;
+    temaEm = agora;
+  }
+}
+
+function quadro(agora) {
+  const dt = Math.min(64, agora - (ultimoTempo || agora));
+  ultimoTempo = agora;
+  const k = 1 - Math.pow(1 - 0.16, dt / 16.67);
+  pAtual += (pAlvo - pAtual) * k;
+  if (Math.abs(pAlvo - pAtual) < 0.0004) pAtual = pAlvo;
+  aplicar(false);
+  atualizarTopo(agora);
+  if (pAtual !== pAlvo) requestAnimationFrame(quadro);
+  else { rodando = false; ultimoTempo = 0; }
+}
+
+function acordar() {
+  if (rodando) return;
+  rodando = true;
+  requestAnimationFrame(quadro);
 }
 
 function iniciar() {
@@ -135,12 +222,15 @@ function iniciar() {
   }
   carregar(0).then(() => {
     secao.setAttribute('data-pronto', '');
-    ajustarCanvas();
+    medir();
   });
   carregarTodos();
-  addEventListener('scroll', agendar, { passive: true });
-  addEventListener('resize', ajustarCanvas);
-  agendar();
+  addEventListener('scroll', () => { lerRolagem(); acordar(); }, { passive: true });
+  addEventListener('resize', medir);
+  medir();
+  pAtual = pAlvo;
+  aplicar(true);
+  atualizarTopo(performance.now());
 }
 
 iniciar();
